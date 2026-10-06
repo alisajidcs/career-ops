@@ -99,6 +99,14 @@ function checkIgnoreThroughSymlinks(probe) {
   return { ...checkIgnore(ancestor), via: ancestor };
 }
 
+// Explicitly versioned setup is authorized only in Ali's exact personal fork.
+const origin = spawnSync('git', ['config', '--get', 'remote.origin.url'], { cwd: ROOT, encoding: 'utf8' });
+const personalSetupFork = process.env.GITHUB_REPOSITORY
+  ? process.env.GITHUB_REPOSITORY === 'alisajidcs/career-ops'
+  : /github\.com[:/]alisajidcs\/career-ops(?:\.git)?$/.test((origin.stdout || '').trim());
+const personalSetupFiles = new Set(['cv.md', 'config/profile.yml', 'modes/_profile.md', 'modes/_custom.md', 'modes/_brief.md', 'portals.yml']);
+const explicitNegations = readFileSync(join(ROOT, '.gitignore'), 'utf8').split(/\r?\n/);
+
 console.log('\n🔒 user-layer files are git-ignored');
 
 // Pull the declared user-layer paths straight out of AGENTS.md so the test tracks
@@ -126,6 +134,10 @@ if (!line) {
 
     if (first.verdict === 'ignored') {
       pass(`${p} is git-ignored`);
+      continue;
+    }
+    if (first.verdict === 'not-ignored' && personalSetupFork && personalSetupFiles.has(p) && explicitNegations.includes(`!${p}`)) {
+      pass(`${p} is explicitly versioned in Ali's personal fork`);
       continue;
     }
     if (first.verdict === 'not-ignored') {

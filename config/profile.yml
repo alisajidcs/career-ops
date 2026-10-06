@@ -1,0 +1,17 @@
+candidate:
+  full_name: Ali Sajid
+  title: Full-Stack Software Engineer
+  email: hello@alisajidcs.com
+  phone: '+49 176 27512130'
+  location: Berlin, Germany
+  linkedin: https://linkedin.com/in/alisajidcs
+  portfolio_url: https://alisajidcs.com/
+  github: https://github.com/alisajidcs
+language:
+  output: en
+target_roles:
+  primary: []
+  archetypes: []
+narrative:
+  headline: Full-stack software engineer with applied AI experience
+  proof_points: []

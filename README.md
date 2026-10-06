@@ -706,3 +706,11 @@ endorsement.
 [![X](https://img.shields.io/badge/X-000?style=for-the-badge&logo=x&logoColor=white)](https://x.com/santifer)
 [![Discord](https://img.shields.io/badge/Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/8pRpHETxa4)
 [![Email](https://img.shields.io/badge/Email-EA4335?style=for-the-badge&logo=gmail&logoColor=white)](mailto:hi@santifer.io)
+
+### Ali's personal Career-Ops setup
+
+This fork versions [cv.md](cv.md) as the detailed master career reference, with [config/profile.yml](config/profile.yml), [modes/_profile.md](modes/_profile.md), [modes/_custom.md](modes/_custom.md) and [modes/_brief.md](modes/_brief.md). Read the master to create tailored CVs, cover letters, LinkedIn and website content using the existing Career-Ops workflows. No importer is needed.
+
+Detailed data remains in `../career-knowledgeBase`. When it changes, explicitly ask the agent to refresh `cv.md` from the reviewed records, preserving uncertainty and source revision. The custom instructions describe that workflow. Do not upload these personal files to the upstream project. Reports, applications and generated PDFs remain ignored.
+
+From this checkout, run `npm install`, then `node doctor.mjs --json --cli codex`. PDF generation requires the pinned Playwright Chromium installation. `portals.yml` is a valid empty configuration; choose actual scan targets before discovery. Compensation, work authorization and preferred roles are deliberately unspecified.
