@@ -5,6 +5,7 @@ import { resolve, relative, isAbsolute, dirname, basename, sep } from 'node:path
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { isMainModule } from '../lib/is-main-module.mjs';
 
 export async function buildDigest(knowledgeRoot) {
   const root = await realpath(knowledgeRoot);
@@ -68,6 +69,6 @@ async function main() {
   await writeFile(target, digest, { flag: 'wx' });
   console.log(`Created ${target}; source records remain unchanged.`);
 }
-if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+if (isMainModule(import.meta.url)) {
   main().catch(error => { console.error(error.message); process.exitCode = 1; });
 }
