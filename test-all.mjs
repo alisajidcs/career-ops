@@ -2124,7 +2124,12 @@ for (const f of skillEntrypoints) {
   }
 }
 
-// Check user files are NOT tracked (gitignored)
+// Upstream keeps personal files untracked. Ali explicitly versions only his
+// setup files in his personal fork; those must also be visibly un-ignored.
+const personalSetupFork = process.env.GITHUB_REPOSITORY
+  ? process.env.GITHUB_REPOSITORY === 'alisajidcs/career-ops'
+  : /github\.com[:/]alisajidcs\/career-ops(?:\.git)?$/.test((run('git', ['config', '--get', 'remote.origin.url']) || '').trim());
+const forkIgnoreRules = readFile('.gitignore') || '';
 const userFiles = [
   'config/profile.yml', 'modes/_profile.md', 'portals.yml',
 ];
@@ -2134,6 +2139,8 @@ for (const f of userFiles) {
     pass(`User file gitignored: ${f}`);
   } else if (tracked === null) {
     pass(`User file gitignored: ${f}`);
+  } else if (personalSetupFork && forkIgnoreRules.split(/\r?\n/).includes(`!${f}`)) {
+    pass(`Explicitly versioned personal-fork setup: ${f}`);
   } else {
     fail(`User file IS tracked (should be gitignored): ${f}`);
   }

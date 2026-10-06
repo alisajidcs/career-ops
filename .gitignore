@@ -258,3 +258,11 @@ documents/*
 # PII (e.g. cv/jane-doe-master-cv.pdf). #1723
 data/intake-state.json
 data/agent-inbox.md
+
+# Ali's personal fork: explicitly requested versioned master reference and setup.
+!cv.md
+!config/profile.yml
+!modes/_profile.md
+!modes/_custom.md
+!modes/_brief.md
+!portals.yml

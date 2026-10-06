@@ -2,7 +2,8 @@ name: No user data in PRs
 
 # Hard-blocks any PR that adds or modifies user-layer (private data) files.
 # These live ONLY on the candidate's machine per DATA_CONTRACT.md and must never
-# enter the repo — they are personal job-search data. Sample/fixture data belongs
+# enter the upstream repo — they are personal job-search data.
+# Ali’s personal fork explicitly allows only its versioned master/setup files. Sample/fixture data belongs
 # under examples/. Tracked scaffolding (.gitkeep keepers, dir READMEs) is exempt.
 # Overlaps USER_PATHS in update-system.mjs without mirroring it: that list says
 # what an update must never overwrite, this one says what must never enter the
@@ -40,6 +41,7 @@ jobs:
               /^config\/profile\.yml$/,
               /^modes\/_profile\.md$/,
               /^modes\/_custom\.md$/,
+              /^modes\/_brief\.md$/,
               /^portals\.yml$/,
               /^article-digest\.md$/,
               /^interview-prep\//,
@@ -79,10 +81,17 @@ jobs:
                 ? BATCH_SOURCES.has(f)
                 : /(^|\/)\.gitkeep$/.test(f) || /(^|\/)README\.md$/.test(f);
 
+            // Ali explicitly versions these reference/config files in his personal fork.
+            // All other user data, and every other repository, retain the guard.
+            const personalForkFiles = owner === 'alisajidcs' && repo === 'career-ops'
+              ? new Set(['cv.md', 'config/profile.yml', 'modes/_profile.md',
+                  'modes/_custom.md', 'modes/_brief.md', 'portals.yml'])
+              : new Set();
+
             const bad = files
               .filter((f) => f.status !== 'removed')
               .map((f) => f.filename)
-              .filter((f) => USER_PATHS.some((re) => re.test(f)) && !isScaffold(f));
+              .filter((f) => USER_PATHS.some((re) => re.test(f)) && !isScaffold(f) && !personalForkFiles.has(f));
 
             if (bad.length) {
               core.setFailed(

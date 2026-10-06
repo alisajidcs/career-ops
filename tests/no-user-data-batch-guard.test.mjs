@@ -42,7 +42,7 @@ const WORKFLOW = '.github/workflows/no-user-data.yml';
  *
  * @returns {(f: string) => boolean} True when the guard would fail the PR over `f`.
  */
-function loadGuard() {
+function loadGuard(owner = 'career-ops-hq', repo = 'career-ops') {
   const yaml = readFileSync(join(ROOT, WORKFLOW), 'utf-8');
   const start = yaml.indexOf('const USER_PATHS = [');
   const end = yaml.indexOf('const bad = files');
@@ -50,10 +50,12 @@ function loadGuard() {
   assert.ok(end > start, `${WORKFLOW} no longer consumes USER_PATHS via "const bad = files"`);
   const src = yaml.slice(start, end);
   assert.match(src, /isScaffold/, 'the extracted slice is missing the isScaffold exemption');
+  const predicate = yaml.match(/\.filter\(\(f\) => (USER_PATHS[^\n]+)\);/);
+  assert.ok(predicate, 'workflow file predicate not found');
   // eslint-disable-next-line no-new-func
-  return new Function(
-    `${src}\nreturn (f) => USER_PATHS.some((re) => re.test(f)) && !isScaffold(f);`,
-  )();
+  return new Function('owner', 'repo',
+    `${src}\nreturn (f) => ${predicate[1]};`,
+  )(owner, repo);
 }
 
 /** @returns {string[]} Repo-relative paths git tracks under batch/. */
@@ -138,4 +140,21 @@ test('the guard exempts every tracked source under batch/', () => {
     `the no-user-data guard would block tracked batch/ sources, failing every PR that edits ` +
       `them: ${blocked.join(', ')}`,
   );
+});
+
+
+test('personal reference exception is limited to Ali’s exact fork and setup paths', () => {
+  const personal = loadGuard('alisajidcs', 'career-ops');
+  const upstream = loadGuard();
+  const otherFork = loadGuard('someone-else', 'career-ops');
+  const otherRepo = loadGuard('alisajidcs', 'another-repo');
+  for (const path of ['cv.md', 'config/profile.yml', 'modes/_profile.md', 'modes/_custom.md', 'modes/_brief.md', 'portals.yml']) {
+    assert.equal(personal(path), false, path);
+    assert.equal(upstream(path), true, path);
+    assert.equal(otherFork(path), true, path);
+    assert.equal(otherRepo(path), true, path);
+  }
+  for (const path of ['article-digest.md', 'data/applications.md', 'reports/report.md', 'output/cv.pdf', 'batch/cv.json']) {
+    assert.equal(personal(path), true, path);
+  }
 });
