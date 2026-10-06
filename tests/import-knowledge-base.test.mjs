@@ -1,6 +1,9 @@
 import { mkdtemp, writeFile, mkdir, symlink, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
+import { readFile } from 'node:fs/promises';
 import { buildDigest } from '../scripts/import-knowledge-base.mjs';
 import { pass, fail } from './helpers.mjs';
 const root = await mkdtemp(join(tmpdir(), 'career-kb-'));
@@ -17,6 +20,16 @@ try {
   const digest = await buildDigest(root);
   if (digest.includes('personally owned frontend') && digest.includes('Dates unresolved') && /Source SHA-256: [a-f0-9]{64}/.test(digest)) pass('imports ownership, unresolved details and source hashes');
   else fail('imports ownership, unresolved details and source hashes');
+  const output = join(root, 'article-digest.md');
+  const script = fileURLToPath(new URL('../scripts/import-knowledge-base.mjs', import.meta.url));
+  const run = (...args) => spawnSync(process.execPath, [script, root, '--output', output, ...args], { encoding: 'utf8' });
+  if (run().status !== 0) pass('requires explicit confirmation before creating a digest');
+  else fail('requires explicit confirmation before creating a digest');
+  if (run('--confirm').status === 0 && (await readFile(output, 'utf8')).includes('role-example')) pass('confirmed import writes to an external data root');
+  else fail('confirmed import writes to an external data root');
+  await writeFile(output, 'Existing user file');
+  if (run('--confirm').status !== 0 && await readFile(output, 'utf8') === 'Existing user file') pass('refuses overwriting an existing user digest');
+  else fail('refuses overwriting an existing user digest');
   index.records.push({ ...index.records[0] }); await save();
   await rejects('rejects duplicate record IDs', () => buildDigest(root));
   index.records.pop(); index.records[0].parent_id = 'missing'; await save();
